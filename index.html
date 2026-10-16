@@ -1,12 +1,83 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EWA | Fixed Payment Scheme</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f7f9fc;font-family:Arial,Helvetica,sans-serif;color:#111827}.shell{max-width:1020px;margin:28px auto;padding:25px 30px;background:white;border:1px solid #e4e7ec;border-radius:17px}header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}h1{font-size:20px;margin:0 0 8px;font-weight:650}p{margin:0;color:#667085;font-size:14px}.pill{background:#dcf8e7;color:#078548;border-radius:22px;padding:7px 12px;font-size:13px;font-weight:bold}.filters{display:flex;align-items:center;gap:12px;margin-top:27px}select{padding:10px 12px;border:1px solid #d5dce6;border-radius:8px;background:white;font-size:14px}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:27px 0 38px}.kpi{padding:15px;border-radius:10px;background:#fafbfc}.kpi span{display:block;color:#667085;font-size:13px;margin-bottom:11px}.kpi strong{font-size:29px;font-weight:600}h2{font-size:19px;margin:0 0 20px}.legend{text-align:center;margin:16px}.legend span{margin:0 12px;font-size:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px}.note{font-size:12px;color:#8993a4;margin-top:30px}.status{font-size:12px;color:#64748b;margin-left:auto}svg{width:100%;height:auto;display:block}button{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:9px 12px;cursor:pointer;color:#334155}button:hover{background:#f1f5f9}@media(max-width:600px){.shell{margin:8px;padding:17px}.kpis{gap:7px}.kpi{padding:10px}.kpi strong{font-size:22px}.kpi span{font-size:11px}h1{font-size:17px}.pill{font-size:10px}}
-</style></head><body><main class="shell"><header><div><h1>EWA | Fixed Payment Scheme</h1><p>Mall Booth Campaign Performance</p></div><span class="pill">Campaign Overview</span></header><div class="filters"><label for="mall">Mall</label><select id="mall"><option>All Malls</option><option>Avenues</option><option>City Centre</option><option>Marassi</option></select><button id="refresh">Refresh</button><span class="status" id="status">Illustrative data</span></div><section class="kpis"><div class="kpi"><span>Visitors</span><strong id="visitors">320</strong></div><div class="kpi"><span>Enrollments</span><strong id="enrollments">120</strong></div><div class="kpi"><span>Conversion</span><strong id="conversion">37.5%</strong></div></section><h2>Visitors vs. Enrollments by Mall</h2><svg id="chart" viewBox="0 0 900 440" role="img" aria-label="Visitors and enrollments by mall"></svg><div class="legend"><span><i class="dot" style="background:#5399f6"></i>Visitors</span><span><i class="dot" style="background:#69c780"></i>Enrollments</span></div><p class="note" id="note">Illustrative figures from the prototype, not live campaign data.</p></main><script>
-// Replace the empty string with your deployed Google Apps Script WEB APP URL.
-const GOOGLE_SHEETS_API_URL = '';
-let records=[{mall:'Avenues',visitors:120,enrollments:55},{mall:'City Centre',visitors:100,enrollments:50},{mall:'Marassi',visitors:100,enrollments:15}];
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EWA | Fixed Payment Scheme</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f7f9fc;font-family:Arial,Helvetica,sans-serif;color:#111827}.shell{max-width:1020px;margin:28px auto;padding:25px 30px;background:white;border:1px solid #e4e7ec;border-radius:17px}header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}h1{font-size:20px;margin:0 0 8px;font-weight:650}p{margin:0;color:#667085;font-size:14px}.pill{background:#dcf8e7;color:#078548;border-radius:22px;padding:7px 12px;font-size:13px;font-weight:bold}.filters{display:flex;align-items:center;gap:12px;margin-top:27px}select{padding:10px 12px;border:1px solid #d5dce6;border-radius:8px;background:white;font-size:14px}.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:27px 0 38px}.kpi{padding:15px;border-radius:10px;background:#fafbfc}.kpi span{display:block;color:#667085;font-size:13px;margin-bottom:11px}.kpi strong{font-size:29px;font-weight:600}h2{font-size:19px;margin:0 0 20px}.legend{text-align:center;margin:16px}.legend span{margin:0 12px;font-size:14px}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px}.note{font-size:12px;color:#8993a4;margin-top:30px}.status{font-size:12px;color:#64748b;margin-left:auto}svg{width:100%;height:auto;display:block}button{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:9px 12px;cursor:pointer;color:#334155}button:hover{background:#f1f5f9}@media(max-width:600px){.shell{margin:8px;padding:17px}.kpis{gap:7px}.kpi{padding:10px}.kpi strong{font-size:22px}.kpi span{font-size:11px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header><div><h1>EWA | Fixed Payment Scheme</h1><p>Mall Booth Campaign Performance</p></div><span class="pill">Campaign Overview</span></header>
+<div class="filters"><label for="mall">Mall</label><select id="mall"><option>All Malls</option><option>Avenues</option><option>City Centre</option><option>Marassi</option></select><button id="refresh">Refresh</button><span class="status" id="status">Connecting to Google Sheets…</span></div>
+<section class="kpis"><div class="kpi"><span>Visitors</span><strong id="visitors">—</strong></div><div class="kpi"><span>Enrollments</span><strong id="enrollments">—</strong></div><div class="kpi"><span>Conversion</span><strong id="conversion">—</strong></div></section>
+<h2>Visitors vs. Enrollments by Mall</h2><svg id="chart" viewBox="0 0 900 440" role="img" aria-label="Visitors and enrollments by mall"></svg>
+<div class="legend"><span><i class="dot" style="background:#5399f6"></i>Visitors</span><span><i class="dot" style="background:#69c780"></i>Enrollments</span></div>
+<p class="note" id="note">Waiting for campaign reporting data.</p>
+</main>
+<script>
+const GOOGLE_SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxE7NhrFhJjph_h-xXD-ol8Ps-2agcyU3Pwuj6xL4IDOd5bQDxioHucSAODK7lJuivHlQ/exec';
+const MALLS = ['Avenues','City Centre','Marassi'];
+let records = [];
+let hasLoaded = false;
 const svg=document.getElementById('chart'),sel=document.getElementById('mall'),NS='http://www.w3.org/2000/svg';
 function elem(tag,attrs,text){const x=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))x.setAttribute(k,v);if(text!==undefined)x.textContent=text;return x}
-function render(){const rows=sel.value==='All Malls'?records:records.filter(x=>x.mall===sel.value),vis=rows.reduce((s,r)=>s+r.visitors,0),enr=rows.reduce((s,r)=>s+r.enrollments,0);document.getElementById('visitors').textContent=vis.toLocaleString();document.getElementById('enrollments').textContent=enr.toLocaleString();document.getElementById('conversion').textContent=(vis?100*enr/vis:0).toFixed(1)+'%';svg.replaceChildren();const left=55,right=15,top=15,bottom=385,max=Math.max(140,Math.ceil(Math.max(0,...records.map(r=>r.visitors),...records.map(r=>r.enrollments))/35)*35),width=900-left-right;for(let i=0;i<=4;i++){const v=max*i/4,y=bottom-(bottom-top)*i/4;svg.append(elem('line',{x1:left,y1:y,x2:900-right,y2:y,stroke:'#e5eaf0','stroke-dasharray':'4 4'}),elem('text',{x:left-12,y:y+4,'text-anchor':'end','font-size':12,fill:'#6b7280'},String(Math.round(v))))}rows.forEach((r,i)=>{const slot=width/rows.length,center=left+slot*(i+.5),bw=Math.min(120,slot*.32);[[r.visitors,'#5399f6','Visitors'],[r.enrollments,'#69c780','Enrollments']].forEach(([v,color,label],j)=>{const x=center+(j===0?-bw-3:3),h=v/max*(bottom-top),y=bottom-h;const rect=elem('rect',{x,y,width:bw,height:h,rx:10,fill:color});rect.append(elem('title',{},`${r.mall}: ${label} ${v}`));svg.append(rect,elem('text',{x:x+bw/2,y:y+Math.min(21,Math.max(14,h/2)),'text-anchor':'middle',fill:h>28?'white':'#111827','font-size':14,'font-weight':600},String(v)))});svg.append(elem('text',{x:center,y:bottom+27,'text-anchor':'middle',fill:'#667085','font-size':14},r.mall));if(sel.value==='All Malls'){const hit=elem('rect',{x:center-slot/2,y:top,width:slot,height:bottom-top+40,fill:'transparent',tabindex:0,role:'button','aria-label':'Filter '+r.mall});hit.style.cursor='pointer';hit.addEventListener('click',()=>{sel.value=r.mall;render()});hit.addEventListener('keydown',e=>{if(e.key==='Enter'){sel.value=r.mall;render()}});svg.append(hit)}})}
-async function load(){if(!GOOGLE_SHEETS_API_URL){render();return}const status=document.getElementById('status');status.textContent='Updating…';try{const response=await fetch(GOOGLE_SHEETS_API_URL,{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const json=await response.json();if(!Array.isArray(json))throw Error('Invalid response');const byMall=new Map(['Avenues','City Centre','Marassi'].map(m=>[m,{mall:m,visitors:0,enrollments:0}]));for(const r of json){const name=String(r.mall||'').trim().toLowerCase();const canonical=[...byMall.keys()].find(m=>m.toLowerCase()===name);if(!canonical)continue;const v=Number(r.visitors),e=Number(r.enrollments);if(!Number.isFinite(v)||!Number.isFinite(e)||v<0||e<0||e>v)continue;byMall.get(canonical).visitors+=v;byMall.get(canonical).enrollments+=e}records=[...byMall.values()];status.textContent='Connected to Google Sheets';document.getElementById('note').textContent='Figures are calculated from the connected campaign reporting sheet.';render()}catch(e){status.textContent='Connection failed — showing last available figures';console.error(e);render()}}
-sel.addEventListener('change',render);document.getElementById('refresh').addEventListener('click',load);load();
-</script></body></html>
+function render(){
+ if(!hasLoaded)return;
+ const rows=sel.value==='All Malls'?records:records.filter(x=>x.mall===sel.value),vis=rows.reduce((s,r)=>s+r.visitors,0),enr=rows.reduce((s,r)=>s+r.enrollments,0);
+ document.getElementById('visitors').textContent=vis.toLocaleString();document.getElementById('enrollments').textContent=enr.toLocaleString();document.getElementById('conversion').textContent=(vis?100*enr/vis:0).toFixed(1)+'%';
+ svg.replaceChildren();const left=55,right=15,top=15,bottom=385,max=Math.max(140,Math.ceil(Math.max(0,...records.map(r=>r.visitors),...records.map(r=>r.enrollments))/35)*35),width=900-left-right;
+ for(let i=0;i<=4;i++){const v=max*i/4,y=bottom-(bottom-top)*i/4;svg.append(elem('line',{x1:left,y1:y,x2:900-right,y2:y,stroke:'#e5eaf0','stroke-dasharray':'4 4'}),elem('text',{x:left-12,y:y+4,'text-anchor':'end','font-size':12,fill:'#6b7280'},String(Math.round(v))))}
+ rows.forEach((r,i)=>{const slot=width/rows.length,center=left+slot*(i+.5),bw=Math.min(120,slot*.32);[[r.visitors,'#5399f6','Visitors'],[r.enrollments,'#69c780','Enrollments']].forEach(([v,color,label],j)=>{const x=center+(j===0?-bw-3:3),h=v/max*(bottom-top),y=bottom-h;const rect=elem('rect',{x,y,width:bw,height:h,rx:10,fill:color});rect.append(elem('title',{},`${r.mall}: ${label} ${v}`));svg.append(rect,elem('text',{x:x+bw/2,y:y+Math.min(21,Math.max(14,h/2)),'text-anchor':'middle',fill:h>28?'white':'#111827','font-size':14,'font-weight':600},String(v)))});svg.append(elem('text',{x:center,y:bottom+27,'text-anchor':'middle',fill:'#667085','font-size':14},r.mall));if(sel.value==='All Malls'){const hit=elem('rect',{x:center-slot/2,y:top,width:slot,height:bottom-top+40,fill:'transparent',tabindex:0,role:'button','aria-label':'Filter '+r.mall});hit.style.cursor='pointer';hit.addEventListener('click',()=>{sel.value=r.mall;render()});hit.addEventListener('keydown',e=>{if(e.key==='Enter'){sel.value=r.mall;render()}});svg.append(hit)}})
+}
+let loading=false;
+let requestCounter=0;
+function getSheetData(){
+ return new Promise((resolve,reject)=>{
+  const callback='ewaSheetCallback_'+Date.now()+'_'+(++requestCounter);
+  const script=document.createElement('script');
+  let finished=false;
+  const timer=setTimeout(()=>finish(new Error('Connection timed out after 15 seconds')),15000);
+  function finish(error,data){
+   if(finished)return;
+   finished=true;clearTimeout(timer);delete window[callback];script.remove();
+   if(error)reject(error);else resolve(data);
+  }
+  window[callback]=data=>finish(null,data);
+  script.onerror=()=>finish(new Error('Unable to load Apps Script endpoint. Check deployment access.'));
+  script.src=GOOGLE_SHEETS_API_URL+'?callback='+encodeURIComponent(callback)+'&t='+Date.now();
+  document.head.appendChild(script);
+ });
+}
+async function load(){
+ if(loading)return;
+ loading=true;
+ const status=document.getElementById('status');status.textContent='Updating…';
+ try{
+  const json=await getSheetData();
+  if(json.success!==true||!Array.isArray(json.records))throw Error(json.error||'Invalid Google Sheets response');
+  const byMall=new Map(MALLS.map(m=>[m,{mall:m,visitors:0,enrollments:0}]));
+  for(const r of json.records){
+   const name=String(r.mall||'').trim().toLowerCase();
+   const canonical=MALLS.find(m=>m.toLowerCase()===name);
+   if(!canonical)continue;
+   const v=Number(r.visitors),e=Number(r.enrollments);
+   if(!Number.isFinite(v)||!Number.isFinite(e)||v<0||e<0||e>v)continue;
+   byMall.get(canonical).visitors+=v;byMall.get(canonical).enrollments+=e;
+  }
+  records=[...byMall.values()];hasLoaded=true;
+  status.textContent='Connected to Google Sheets';
+  document.getElementById('note').textContent='Figures are calculated from the connected campaign reporting sheet.';
+  render();
+ }catch(e){
+  status.textContent='Connection failed — '+(hasLoaded?'showing last available figures':'no live data');
+  document.getElementById('note').textContent=hasLoaded?'Previously retrieved figures are shown. Refresh to try again.':'Unable to retrieve live data: '+e.message;
+  console.error('Google Sheets connection failed:',e);
+ }finally{loading=false}
+}
+sel.addEventListener('change',render);document.getElementById('refresh').addEventListener('click',load);load();setInterval(load,60000);
+</script>
+</body>
+</html>
