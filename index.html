@@ -38,6 +38,7 @@ function updateOptions(select,values,allLabel,display=x=>x){
  values.forEach(value=>select.add(new Option(display(value),value)));
  select.value=values.includes(old)?old:'';
 }
+function locationRank(type){const t=String(type||'').trim().toLowerCase();return t==='mall'?0:(t==='government building'||t==='government buildings')?1:2;}
 function render(){
  if(!hasLoaded)return;
  const rows=records.filter(r=>(!sel.value||r.location===sel.value)&&(!dateSel.value||r.date===dateSel.value));
@@ -46,8 +47,8 @@ function render(){
  document.getElementById('enrollments').textContent=enr.toLocaleString();
  document.getElementById('conversion').textContent=(vis?100*enr/vis:0).toFixed(1)+'%';
  const grouped=new Map();
- for(const r of rows){if(!grouped.has(r.location))grouped.set(r.location,{location:r.location,visitors:0,enrollments:0});const item=grouped.get(r.location);item.visitors+=r.visitors;item.enrollments+=r.enrollments;}
- const bars=[...grouped.values()].sort((a,b)=>a.location.localeCompare(b.location));
+ for(const r of rows){if(!grouped.has(r.location))grouped.set(r.location,{location:r.location,locationType:r.locationType,visitors:0,enrollments:0});const item=grouped.get(r.location);item.visitors+=r.visitors;item.enrollments+=r.enrollments;}
+ const bars=[...grouped.values()].sort((a,b)=>locationRank(a.locationType)-locationRank(b.locationType)||a.locationType.localeCompare(b.locationType)||a.location.localeCompare(b.location));
  svg.replaceChildren();
  const left=55,right=15,top=15,bottom=385,width=900-left-right;
  const max=Math.max(140,Math.ceil(Math.max(0,...bars.map(r=>r.visitors),...bars.map(r=>r.enrollments))/35)*35);
@@ -93,10 +94,11 @@ async function load(){
    const location=String(r.location||r.mall||'').trim(),date=normalizeDate(r.date);
    const visitors=Number(r.visitors),enrollments=Number(r.enrollments);
    if(!location||!date||!Number.isFinite(visitors)||!Number.isFinite(enrollments)||visitors<0||enrollments<0||enrollments>visitors)continue;
-   valid.push({location,date,visitors,enrollments});
+   valid.push({location,locationType:String(r.locationType||'').trim(),date,visitors,enrollments});
   }
   records=valid;hasLoaded=true;
-  updateOptions(sel,[...new Set(records.map(r=>r.location))].sort((a,b)=>a.localeCompare(b)),'All Locations');
+  const orderedLocations=[...new Map(records.map(r=>[r.location,r.locationType])).entries()].sort((a,b)=>locationRank(a[1])-locationRank(b[1])||a[1].localeCompare(b[1])||a[0].localeCompare(b[0])).map(([name])=>name);
+  updateOptions(sel,orderedLocations,'All Locations');
   updateOptions(dateSel,[...new Set(records.map(r=>r.date))].sort((a,b)=>b.localeCompare(a)),'All Dates',displayDate);
   status.textContent='Connected to Google Sheets';
   document.getElementById('note').textContent='Figures are calculated from the connected campaign reporting sheet.';
